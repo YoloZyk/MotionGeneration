@@ -1,0 +1,9 @@
+python train.py \
+    --model_type flow_matching \
+    --epoch 50 \
+    --batch_size 64 \
+    --flow_sigma 0.01 \
+    --base_channels 128 \
+    --channel_multipliers 1 2 4 \
+    --time_emb_dim 128 \
+    --mid_structure attention \
