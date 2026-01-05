@@ -14,6 +14,7 @@ import logging
 import json
 from datetime import datetime
 from tqdm import tqdm
+from config.static_args import TIP_PATH
 
 def setup_logger(log_dir, name='Training'):
     """Setup logger with both file and console handlers"""
@@ -99,6 +100,8 @@ def train_diffusion_model(args):
     # Setup directories with better organization
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     exp_name = f"{args.exp_name}_{timestamp}" if args.exp_name else timestamp
+
+    # import pdb; pdb.set_trace()
 
     # Create organized directory structure
     # run_dir: contains all outputs for this run
@@ -298,7 +301,7 @@ if __name__ == '__main__':
                         help="Dataset for training")
 
     # Training parameters
-    parser.add_argument('--device', type=str, default='cuda:0' if torch.cuda.is_available() else 'cpu',
+    parser.add_argument('--device', type=str, default='cuda:2' if torch.cuda.is_available() else 'cpu',
                         help='Device to use')
     parser.add_argument('--epochs', type=int, default=50, 
                         help='Number of training epochs')

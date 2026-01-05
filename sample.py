@@ -1,17 +1,20 @@
 # motion_generation/sample.py
 
 import torch
-from lib.model.unet1d import UNet1D
-from lib.model.ddpm import DDPM
-from lib.model.flow_matching import FlowMatching
-from lib.dataset.pressurepose import PressurePoseDataset
-from lib.util.data_utils import unnormalize_pose
 import argparse
 import os
 import logging
 from tqdm import tqdm
 import numpy as np
 import json
+
+from lib.model.unet1d import UNet1D
+from lib.model.ddpm import DDPM
+from lib.model.flow_matching import FlowMatching
+from lib.dataset.pressurepose import PressurePoseDataset
+from lib.dataset.tip import InBedPressureDataset
+from lib.util.data_utils import unnormalize_pose
+from config.static_args import TIP_PATH
 
 def setup_logger(name='Sampling'):
     """Setup console logger"""
@@ -148,7 +151,17 @@ def sample_poses(args):
 
     # Load dataset to get normalization statistics
     logger.info("Loading dataset for normalization statistics...")
-    dataset = PressurePoseDataset(split='train', device='cpu')
+    if config['dataset'] == 'tip':
+        cfgs = {
+            'dataset_path': TIP_PATH,
+            'dataset_mode': 'unseen_group',
+            'curr_fold': 1,
+            'normalize': False,
+            'device': 'cpu',
+        }
+        dataset = InBedPressureDataset(cfgs=cfgs, mode='train')
+    else: 
+        dataset = PressurePoseDataset(split='train', device='cpu')
     pose_mean = dataset.pose_mean.to(device)
     pose_std = dataset.pose_std.to(device)
 

@@ -84,6 +84,9 @@ class PressurePoseDataset(BasePressureDataset):
         # Initialize SMPL models
         self._initialize_smpl_models()
 
+        # load pose stats
+        self.pose_mean, self.pose_std = load_pose_stats(self.device, dataset='pp')
+
     @staticmethod
     def _get_file_mode(split: str) -> str:
         """Determine which file prefix to use based on split."""
@@ -311,12 +314,16 @@ class PressurePoseDataset(BasePressureDataset):
             self.transl[idx]
         ], dim=0)
 
+        raw_pose = torch.cat([self.global_orient[idx], self.body_pose[idx]], dim=0)
+        pose_norm = normalize_pose(raw_pose.unsqueeze(0), self.pose_mean, self.pose_std)
+
         # Process pressure data
         pressure = self._process_pressure(self.pressures[idx])
 
         result = {
             'vertices': vertices,       # B x 6890 x 3
             'pressure': pressure.float().to(self.device),  # B x 64 x 27
+            'pose_norm': pose_norm.squeeze(0), 
             'smpl': smpl_params.float(),   # B x 85  global_orient + body_pose + betas + transl
             'gender': self.gender[idx]     # B
         }

@@ -221,6 +221,11 @@ def visualize_smpl_mesh(pose_params, betas, transl, title="SMPL Mesh", save_path
     )
 
     vertices = output.vertices[0].cpu().numpy()  # (6890, 3)
+
+    # for tip
+    vertices[:, 1] = 1.80 - vertices[:, 1]
+    vertices[:, 2] = -vertices[:, 2]
+
     faces = smpl_model.faces
 
     # Create 3D plot

@@ -21,7 +21,7 @@ from tqdm import tqdm
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from lib.dataset.base_dataset import BasePressureDataset
-# from lib.util.data_utils import load_pose_stats, normalize_pose
+from lib.util.data_utils import load_pose_stats, normalize_pose
 
 
 # Constants
@@ -145,7 +145,7 @@ class InBedPressureDataset(BasePressureDataset):
             'sensor_position': []
         }
 
-        # self.pose_mean, self.pose_std = load_pose_stats(self.device, dataset='t')
+        self.pose_mean, self.pose_std = load_pose_stats(self.device, dataset='t')
 
         # Load dataset based on mode
         self._load_dataset()
@@ -450,8 +450,8 @@ class InBedPressureDataset(BasePressureDataset):
             torch.tensor(self.data['trans'][index], dtype=torch.float32),
         ], dim=0)
 
-        # raw_pose = torch.tensor(self.data['pose'][index], dtype=torch.float32).to(self.device)
-        # pose_norm = normalize_pose(raw_pose.unsqueeze(0), self.pose_mean, self.pose_std)
+        raw_pose = torch.tensor(self.data['pose'][index], dtype=torch.float32).to(self.device)
+        pose_norm = normalize_pose(raw_pose.unsqueeze(0), self.pose_mean, self.pose_std)
 
         # import pdb; pdb.set_trace()
         vertices = torch.tensor(self.data['verts'][index], dtype=torch.float32)
@@ -465,7 +465,7 @@ class InBedPressureDataset(BasePressureDataset):
             'pressure': transform(self.data['pressure'][index]).type(torch.FloatTensor).squeeze().to(self.device),
             'vertices': vertices.to(self.device),
             'smpl': smpl_params.to(self.device), 
-            # 'pose_norm': pose_norm.squeeze(0), 
+            'pose_norm': pose_norm.squeeze(0), 
             'sid': torch.tensor(self.data['sid'][index]),
         }
 
