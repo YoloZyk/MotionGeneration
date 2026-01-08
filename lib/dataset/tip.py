@@ -61,6 +61,8 @@ NAME_GROUP_MAP = {
     'xft': [37, 41],
 }
 
+NAME_LIST = list(NAME_GROUP_MAP.keys())
+
 # data file idx to subject id mapping
 IDX_SID_MAP = [0]*5+[1]*4+[2]*5+[3]*6+[4]*4+[5]*4+[6]*4+[7]*4+[8]*4
 
@@ -145,7 +147,7 @@ class InBedPressureDataset(BasePressureDataset):
             'sensor_position': []
         }
 
-        self.pose_mean, self.pose_std = load_pose_stats(self.device, dataset='t')
+        self.pose_mean, self.pose_std = load_pose_stats(self.device, dataset='t', fold=self.curr_fold)
 
         # Load dataset based on mode
         self._load_dataset()
@@ -210,7 +212,7 @@ class InBedPressureDataset(BasePressureDataset):
 
     def _load_unseen_subject_data(self) -> None:
         """Load data for unseen_subject mode with three-fold cross-validation."""
-        if self.mode in ['train', 'val']:
+        if self.mode in ['train', 'val', 'all']:
             self._load_unseen_subject_train_eval()
         elif self.mode == 'test':
             self._load_unseen_subject_test()
@@ -219,18 +221,25 @@ class InBedPressureDataset(BasePressureDataset):
 
     def _load_unseen_subject_train_eval(self) -> None:
         """Load training/evaluation data for unseen_subject mode."""
-        for fold, name_list in enumerate(THREE_FOLD):
-            # Load all folds except the current one
-            if fold != self.curr_fold - 1:
-                for name in THREE_FOLD[fold]:
-                    start_idx, end_idx = NAME_GROUP_MAP[name]
-                    for idx in range(start_idx, end_idx):
-                        print(f'Loading train dataset: {idx}')
-                        self._load_single_db(idx)
+        if self.curr_fold < 0:
+            name_list = [NAME_LIST[(0-self.curr_fold-1)]]
+        else:
+            name_list = THREE_FOLD[self.curr_fold - 1]
+
+        for name in name_list:
+            start_idx, end_idx = NAME_GROUP_MAP[name]
+            for idx in range(start_idx, end_idx):
+                print(f'Loading train dataset: {idx}')
+                self._load_single_db(idx)
 
     def _load_unseen_subject_test(self) -> None:
         """Load test data for unseen_subject mode."""
-        for name in THREE_FOLD[self.curr_fold - 1]:
+        if self.curr_fold < 0:
+            name_list = [NAME_LIST[(0-self.curr_fold-1)]]
+        else:
+            name_list = THREE_FOLD[self.curr_fold - 1]
+        
+        for name in name_list:
             start_idx, end_idx = NAME_GROUP_MAP[name]
             for idx in range(start_idx, end_idx):
                 print(f'Loading test dataset: {idx}')
@@ -257,7 +266,7 @@ class InBedPressureDataset(BasePressureDataset):
             'pose': db['label_pose'],
             'trans': db['label_trans'],
             'verts': db['label_verts'],
-            'sid': np.array([IDX_SID_MAP[idx]]*len(db['pressure'])), 
+            'sid': np.array([IDX_SID_MAP[idx-1]]*len(db['pressure'])), 
         }
 
         # Process each segment

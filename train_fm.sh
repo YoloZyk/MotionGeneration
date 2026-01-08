@@ -1,6 +1,7 @@
 python train.py \
     --model_type flow_matching \
     --dataset tip \
+    --curr_sid -1 \
     --epoch 50 \
     --batch_size 64 \
     --flow_sigma 0.01 \

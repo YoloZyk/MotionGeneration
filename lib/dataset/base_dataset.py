@@ -56,7 +56,7 @@ class BasePressureDataset(Dataset, ABC):
         Raises:
             ValueError: If split is not 'train', 'val', or 'test'
         """
-        valid_splits = {'train', 'val', 'test'}
+        valid_splits = {'train', 'val', 'test', 'all'}
         if split not in valid_splits:
             raise ValueError(f"Split must be one of {valid_splits}, got '{split}'")
 

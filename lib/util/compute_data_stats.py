@@ -22,15 +22,15 @@ def compute_pose_stats(dataset, save_path):
 
     # 遍历整个数据集，获取所有姿态参数
     for i, batch in enumerate(tqdm(dataloader, desc="loading")):
-        body_pose = batch['smpl'][:, 10:79]
-        orient = batch['smpl'][:, 79:82]
+        body_pose = batch['smpl'][:, 3:72]
+        orient = batch['smpl'][:, 0:3]
 
         pose = torch.cat([orient, body_pose], dim=1)
         all_poses.append(pose)
 
     all_poses_tensor = torch.cat(all_poses, dim=0) # (N, 72)
     
-    import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
 
     pose_mean = all_poses_tensor.mean(dim=0, keepdim=True) # (1, 72)
     pose_std = all_poses_tensor.std(dim=0, keepdim=True)  # (1, 72)
@@ -52,18 +52,18 @@ def compute_pose_stats(dataset, save_path):
 # 注意：在训练前，需要单独运行一次 compute_pose_stats 来生成 stats 文件！
 # 例如：
 if __name__ == "__main__":
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
-    dataset = PressurePoseDataset(split='train', device=device)
+    # device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    # dataset = PressurePoseDataset(split='train', device=device)
     
-    # cfgs = {
-    #     'dataset_path': "/workspace/zyk/public_data/wzy_opt_dataset_w_feats",
-    #     'dataset_mode': 'unseen_group',  # or 'unseen_subject'
-    #     'curr_fold': 1,  # Used for 'unseen_subject' mode (1, 2, or 3)
-    #     'normalize': False,
-    #     'device': torch.device('cuda:1' if torch.cuda.is_available() else 'cpu'),  # or 'cuda' for GPU
-    # }
-    # dataset = InBedPressureDataset(cfgs, mode='train')
+    cfgs = {
+        'dataset_path': "/workspace/zyk/public_data/wzy_opt_dataset_w_feats",
+        'dataset_mode': 'unseen_subject',  # or 'unseen_subject'
+        'curr_fold': -9,  # Used for 'unseen_subject' mode (1, 2, or 3)
+        'normalize': False,
+        'device': torch.device('cuda:2' if torch.cuda.is_available() else 'cpu'),  # or 'cuda' for GPU
+    }
+    dataset = InBedPressureDataset(cfgs, mode='all')
 
-    compute_pose_stats(dataset, save_path=PP_POSE_STATS_FILE)
+    compute_pose_stats(dataset, save_path=f"data_stats/t{0-cfgs['curr_fold']}_pose_stats.pt")
 
 

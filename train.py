@@ -100,6 +100,8 @@ def train_diffusion_model(args):
     # Setup directories with better organization
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     exp_name = f"{args.exp_name}_{timestamp}" if args.exp_name else timestamp
+    if args.curr_sid < 0:
+        exp_name = exp_name.replace('tip', f'tip_{0-args.curr_sid}')
 
     # import pdb; pdb.set_trace()
 
@@ -138,15 +140,22 @@ def train_diffusion_model(args):
     if args.dataset == "pp":
         train_data = PressurePoseDataset(split='train', device=device)
     else: 
+        # cfgs = {
+        #     'dataset_path': TIP_PATH,
+        #     'dataset_mode': 'unseen_group',
+        #     'curr_fold': 1,
+        #     'normalize': False,
+        #     'device': device,
+        # }
         cfgs = {
             'dataset_path': TIP_PATH,
-            'dataset_mode': 'unseen_group',
-            'curr_fold': 1,
+            'dataset_mode': 'unseen_subject',
+            'curr_fold': args.curr_sid,
             'normalize': False,
             'device': device,
         }
-        train_data = InBedPressureDataset(cfgs=cfgs, mode='train')
-    logger.info(f"Loaded train data: {len(train_data)} samples")
+        train_data = InBedPressureDataset(cfgs=cfgs, mode='all')
+    logger.info(f"Loaded train data: #{0-cfgs['curr_fold']}# {len(train_data)} samples")
 
     # DataLoader
     train_loader = DataLoader(
@@ -299,6 +308,8 @@ if __name__ == '__main__':
                         help='Type of generative model to use: ddpm or flow_matching')
     parser.add_argument('--dataset', type=str, default="pp", choices=["tip", "pp"], 
                         help="Dataset for training")
+    parser.add_argument('--curr_sid', type=int, default=1, 
+                        help='Current fold for cross-validation')
 
     # Training parameters
     parser.add_argument('--device', type=str, default='cuda:2' if torch.cuda.is_available() else 'cpu',

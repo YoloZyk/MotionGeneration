@@ -90,7 +90,7 @@ def create_dataset(
         >>> cfgs = {
         ...     'dataset_path': "/path/to/dataset",
         ...     'dataset_mode': 'unseen_group',
-        ...     'curr_fold': 1,
+        ...     'curr_fold': 1,   # unseen subject下取值范围 [1, 3]或[-1, -9]，正值加载对应flod，负值加载特定sid的数据
         ...     'normalize': True,
         ...     'device': 'cuda'
         ... }
